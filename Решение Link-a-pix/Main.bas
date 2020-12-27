@@ -1,5 +1,4 @@
 Attribute VB_Name = "Main"
-Dim Shift As Long       'Значение сдвига буфера
 Dim RowMax As Long      'Максимальное количество строк
 Dim ColMax As Long      'Максимальное количество колонок
 Dim Changed As Boolean  'Изменения во время последнего прогона
@@ -7,6 +6,7 @@ Dim Lenght As Long      'Общая длина по задаче
 Dim StartX As Long      'Начальная точка цепочки
 Dim StartY As Long      'Начальная точка цепочки
 Dim chains As Collection 'Найденные цепочки
+Dim m() As Integer
 
 Sub Main()
     Dim i As Long
@@ -23,12 +23,12 @@ Sub Main()
         i = i + 1
     Loop
     ColMax = i - 1
-    Shift = ColMax + 5
+    ReDim m(1 To RowMax, 1 To ColMax)
     For i = 1 To ColMax
         For j = 1 To RowMax
-            b = ""
-            If Cells(i, j) = "#" Then b = "#"
-            Cells(i, j + Shift) = b
+            b = 0
+            If Cells(i, j) = "#" Then b = -1
+            m(i, j) = b
         Next
     Next
     Set ramka = Range(Cells(1, 1), Cells(RowMax, ColMax))
@@ -39,47 +39,43 @@ Sub Main()
         Changed = False
         For i = 2 To RowMax - 1
             For j = 2 To ColMax - 1
-                If Cells(i, j) <> "" And Cells(i, j + Shift) = "" Then
+                If Cells(i, j) <> "" And m(i, j) = 0 Then
                     Set chains = New Collection
                     Cells(i, j).Interior.Color = vbRed
                     Lenght = Cells(i, j)
-                    
                     StartX = i
                     StartY = j
                     DoEvents
-                    Application.ScreenUpdating = False
                     find i, j, Lenght, "", ""
-                     
                     If chains.Count = 1 Then
                         SetChain chains(1)
                         Changed = True
                     Else
                         Cells(i, j).Interior.Pattern = xlNone
                     End If
-                    Application.ScreenUpdating = True
-                    DoEvents
                 End If
             Next
         Next
     Loop While Changed
+    
 End Sub
 
 Sub find(ByVal x As Long, ByVal y As Long, ByVal l As Long, ByVal chain As String, ByVal n As String)
     
     may = False
-    If n = "" And Cells(x, y + Shift) = "" Then may = True
-    If Cells(x, y) = "" And Cells(x, y + Shift) = "" Then may = True
-    If l = 1 And Cells(x, y) = Lenght And Cells(x, y + Shift) = "" Then may = True
+    If n = "" And m(x, y) = 0 Then may = True
+    If Cells(x, y) = "" And m(x, y) = 0 Then may = True
+    If l = 1 And Cells(x, y) = Lenght And m(x, y) = 0 Then may = True
     If Not may Then Exit Sub
     
-    Cells(x, y + Shift) = "*"
+    m(x, y) = -2
     chain = chain + n
     l = l - 1
     
     If l = 0 Then
         'Цепочка кончилась
         If Cells(x, y) = Lenght Then chains.Add chain
-        Cells(x, y + Shift) = ""
+        m(x, y) = 0
         Exit Sub
     End If
     
@@ -89,7 +85,7 @@ Sub find(ByVal x As Long, ByVal y As Long, ByVal l As Long, ByVal chain As Strin
     find x, y - 1, l, chain, "4"
     
     'Варианты перебрали, откатываемся на шаг назад
-    Cells(x, y + Shift) = ""
+    m(x, y) = 0
     
 End Sub
 
@@ -97,7 +93,7 @@ End Sub
 Sub SetChain(chain As String)
     x = StartX
     y = StartY
-    Cells(x, y + Shift) = "#"
+    m(x, y) = -1
     pixel x, y
     For i = 1 To Len(chain)
         n = Mid(chain, i, 1)
@@ -121,7 +117,7 @@ Sub SetChain(chain As String)
             pixel x, y
             Cells(x, y).Borders(xlEdgeRight).Weight = 1
         End If
-        Cells(x, y + Shift) = "#"
+        m(x, y) = -1
     Next
 End Sub
 
