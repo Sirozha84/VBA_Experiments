@@ -12,28 +12,8 @@ Sub Main()
     Dim i As Long
     Dim j As Long
     
-    'Подготовка буфера и очистка поля
-    i = 1
-    Do While Cells(1, i) = "#"
-        i = i + 1
-    Loop
-    RowMax = i - 1
-    i = 1
-    Do While Cells(1, i) = "#"
-        i = i + 1
-    Loop
-    ColMax = i - 1
-    ReDim m(1 To RowMax, 1 To ColMax)
-    For i = 1 To ColMax
-        For j = 1 To RowMax
-            b = 0
-            If Cells(i, j) = "#" Then b = -1
-            m(i, j) = b
-        Next
-    Next
-    Set ramka = Range(Cells(1, 1), Cells(RowMax, ColMax))
-    ramka.ClearFormats
-    ramka.HorizontalAlignment = xlCenter
+
+    ClearCells
     
     Do
         Changed = False
@@ -86,7 +66,7 @@ Sub find(ByVal x As Long, ByVal y As Long, ByVal l As Long, ByVal chain As Strin
     
     'Варианты перебрали, откатываемся на шаг назад
     m(x, y) = 0
-    
+    DoEvents
 End Sub
 
 'Рисоваине цепочки в буфере
@@ -124,4 +104,38 @@ End Sub
 Sub pixel(ByVal x As Integer, ByVal y As Integer)
     Cells(x, y).Borders.Weight = 4
     Cells(x, y).Interior.Color = vbGreen
+End Sub
+
+Sub ExitButton()
+    End
+End Sub
+
+Sub ClearCells()
+        'Подготовка буфера и очистка поля
+    i = 1
+    Do While Cells(1, i) = "#"
+        i = i + 1
+    Loop
+    RowMax = i - 1
+    i = 1
+    Do While Cells(1, i) = "#"
+        i = i + 1
+    Loop
+    ColMax = i - 1
+    ReDim m(1 To RowMax, 1 To ColMax)
+    For i = 1 To ColMax
+        For j = 1 To RowMax
+            b = 0
+            If Cells(i, j) = "#" Then b = -1
+            m(i, j) = b
+        Next
+    Next
+    Set ramka = Range(Cells(1, 1), Cells(RowMax, ColMax))
+    ramka.ClearFormats
+    ramka.HorizontalAlignment = xlCenter
+    For i = 2 To RowMax - 1
+        For j = 2 To ColMax - 1
+            If (i + j) Mod 2 = 0 Then Cells(i, j).Interior.Color = RGB(200, 230, 255)
+        Next
+    Next
 End Sub
